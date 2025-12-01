@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main, master ]
   schedule:
-    - cron: "0 10 * * *"   # Runs every day at 10 AM UTC
+    - cron: "0 10 * * *"   # Runs daily at 10 AM UTC
   workflow_dispatch:
 
 jobs:
@@ -28,27 +28,46 @@ jobs:
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
+      # Run tests even if some fail
       run: npx playwright test --reporter=html
+      continue-on-error: true
 
-    - uses: actions/upload-artifact@v4
+    - name: Upload Playwright HTML Report
+      uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
 
-    - name: Zip Playwright Report
-      run: zip -r playwright-report.zip playwright-report
+    - name: Deploy HTML Report to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.PAT_TOKEN }}   # Personal Access Token
+        publish_dir: ./playwright-report          # Deploy contents to root
+        keep_files: true
 
-    - name: Send Email With Report
+    - name: Set DATE environment variable
+      run: echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Send Email With HTML Report Link
       uses: dawidd6/action-send-mail@v3
       with:
         server_address: smtp.gmail.com
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        from: kshitizg786@gmail.com      # your email here
-        to: kshitizgupta032@gmail.com        # your email here
-        subject: "Daily Playwright Test Report - $(date +'%Y-%m-%d')"
-        body: "Your scheduled Playwright test report is attached."
-        attachments: playwright-report.zip
+        from: kshitizg786@gmail.com
+        to: kshitizgupta032@gmail.com
+        subject: "Daily Playwright Test Report - ${{ env.DATE }}"
+        body: "Your scheduled Playwright test report is available here: https://kshitiz-code.github.io/Playwright-Automation/"
+
+    - name: Send Slack Notification
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        REPORT_URL="https://kshitiz-code.github.io/Playwright-Automation/"
+        curl -X POST -H 'Content-type: application/json' \
+        --data "{
+          \"text\": \"Playwright tests completed! 🎉\nHTML report is available here: <$REPORT_URL|Click to view>\"
+        }" $SLACK_WEBHOOK_URL
