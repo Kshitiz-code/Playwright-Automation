@@ -43,7 +43,7 @@ jobs:
       with:
         github_token: ${{ secrets.PAT_TOKEN }}   # Use your Personal Access Token
         publish_dir: ./playwright-report
-        destination_dir: playwright-report
+        destination_dir: /                      # Deploy directly to root
         keep_files: true
 
     - name: Send Email With HTML Report
@@ -63,7 +63,7 @@ jobs:
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       run: |
-        REPORT_URL="https://kshitiz-code.github.io/Playwright-Automation/playwright-report/index.html"
+        REPORT_URL="https://kshitiz-code.github.io/Playwright-Automation/"
         curl -X POST -H 'Content-type: application/json' \
         --data "{
           \"text\": \"Playwright tests completed! 🎉\nHTML report is available here: <$REPORT_URL|Click to view>\"
