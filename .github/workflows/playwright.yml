@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main, master ]
   schedule:
-    - cron: "0 10 * * *"   # Runs every day at 10 AM UTC
+    - cron: "0 10 * * *"
   workflow_dispatch:
 
 jobs:
@@ -38,6 +38,14 @@ jobs:
         path: playwright-report/
         retention-days: 30
 
+    - name: Deploy HTML Report to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v6
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./playwright-report
+        destination_dir: playwright-report
+        keep_files: true
+
     - name: Send Email With HTML Report
       uses: dawidd6/action-send-mail@v3
       with:
@@ -55,15 +63,8 @@ jobs:
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       run: |
+        REPORT_URL="https://kshitiz-code.github.io/Playwright-Automation/playwright-report/index.html"
         curl -X POST -H 'Content-type: application/json' \
-        --data '{
-          "text": "Playwright tests completed! 🎉\nHTML report is available in the uploaded artifacts.",
-          "attachments": [
-            {
-              "fallback": "Playwright report",
-              "color": "#36a64f",
-              "title": "View Playwright Report",
-              "title_link": "https://github.com/${{ github.repository }}/suites/${{ github.run_id }}/artifacts"
-            }
-          ]
-        }' $SLACK_WEBHOOK_URL
+        --data "{
+          \"text\": \"Playwright tests completed! 🎉\nHTML report is available here: <$REPORT_URL|Click to view>\"
+        }" $SLACK_WEBHOOK_URL
