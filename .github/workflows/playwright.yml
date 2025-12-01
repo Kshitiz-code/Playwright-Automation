@@ -28,7 +28,11 @@ jobs:
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
-      run: npx playwright test --reporter=html
+      run: |
+        npx playwright test --reporter=html
+        mkdir -p playwright-report/pdf
+        # Generate PDF from HTML report
+        npx playwright show-report playwright-report --output=playwright-report/pdf/report.pdf
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
@@ -37,9 +41,6 @@ jobs:
         path: playwright-report/
         retention-days: 30
 
-    - name: Zip Playwright Report
-      run: zip -r playwright-report.zip playwright-report
-
     - name: Send Email With Report
       uses: dawidd6/action-send-mail@v3
       with:
@@ -47,8 +48,25 @@ jobs:
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        from: kshitizg786@gmail.com      # your email here
-        to: kshitizgupta032@gmail.com        # your email here
+        from: kshitizg786@gmail.com
+        to: kshitizgupta032@gmail.com
         subject: "Daily Playwright Test Report - $(date +'%Y-%m-%d')"
-        body: "Your scheduled Playwright test report is attached."
-        attachments: playwright-report.zip
+        body: "Your scheduled Playwright test report is available."
+        attachments: playwright-report/
+
+    - name: Send Slack Notification
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        curl -X POST -H 'Content-type: application/json' \
+        --data '{
+          "text": "Playwright tests completed! 🎉\nHTML, PDF, and screenshots are available in the uploaded report.",
+          "attachments": [
+            {
+              "fallback": "Playwright report",
+              "color": "#36a64f",
+              "title": "View Playwright Report",
+              "title_link": "https://github.com/${{ github.repository }}/suites/${{ github.run_id }}/artifacts"
+            }
+          ]
+        }' $SLACK_WEBHOOK_URL
