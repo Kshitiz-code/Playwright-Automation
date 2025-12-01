@@ -28,7 +28,8 @@ jobs:
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
-      run: npx playwright test --reporter=html
+      # Run tests even if some fail
+      run: npx playwright test --reporter=html --continue-on-failure
 
     - name: Upload Playwright HTML Report
       uses: actions/upload-artifact@v4
@@ -41,7 +42,7 @@ jobs:
     - name: Deploy HTML Report to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.PAT_TOKEN }}   # Use Personal Access Token
+        github_token: ${{ secrets.PAT_TOKEN }}   # Personal Access Token
         publish_dir: ./playwright-report          # Deploy contents to root
         keep_files: true
 
