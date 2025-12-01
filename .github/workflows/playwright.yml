@@ -42,8 +42,7 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.PAT_TOKEN }}   # Use your Personal Access Token
-        publish_dir: ./playwright-report
-        destination_dir: /                      # Deploy directly to root
+        publish_dir: ./playwright-report          # Contents will go to root of gh-pages
         keep_files: true
 
     - name: Send Email With HTML Report
