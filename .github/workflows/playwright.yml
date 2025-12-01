@@ -28,20 +28,17 @@ jobs:
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
-      run: |
-        npx playwright test --reporter=html
-        mkdir -p playwright-report/pdf
-        # Generate PDF from HTML report
-        npx playwright show-report playwright-report --output=playwright-report/pdf/report.pdf
+      run: npx playwright test --reporter=html
 
-    - uses: actions/upload-artifact@v4
+    - name: Upload Playwright HTML Report
+      uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
 
-    - name: Send Email With Report
+    - name: Send Email With HTML Report
       uses: dawidd6/action-send-mail@v3
       with:
         server_address: smtp.gmail.com
@@ -51,7 +48,7 @@ jobs:
         from: kshitizg786@gmail.com
         to: kshitizgupta032@gmail.com
         subject: "Daily Playwright Test Report - $(date +'%Y-%m-%d')"
-        body: "Your scheduled Playwright test report is available."
+        body: "Your scheduled Playwright test report (HTML) is attached."
         attachments: playwright-report/
 
     - name: Send Slack Notification
@@ -60,7 +57,7 @@ jobs:
       run: |
         curl -X POST -H 'Content-type: application/json' \
         --data '{
-          "text": "Playwright tests completed! 🎉\nHTML, PDF, and screenshots are available in the uploaded report.",
+          "text": "Playwright tests completed! 🎉\nHTML report is available in the uploaded artifacts.",
           "attachments": [
             {
               "fallback": "Playwright report",
