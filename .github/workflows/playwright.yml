@@ -41,11 +41,14 @@ jobs:
     - name: Deploy HTML Report to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.PAT_TOKEN }}   # Use your Personal Access Token
-        publish_dir: ./playwright-report          # Contents will go to root of gh-pages
+        github_token: ${{ secrets.PAT_TOKEN }}   # Use Personal Access Token
+        publish_dir: ./playwright-report          # Deploy contents to root
         keep_files: true
 
-    - name: Send Email With HTML Report
+    - name: Set DATE environment variable
+      run: echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Send Email With HTML Report Link
       uses: dawidd6/action-send-mail@v3
       with:
         server_address: smtp.gmail.com
@@ -54,9 +57,8 @@ jobs:
         password: ${{ secrets.EMAIL_PASSWORD }}
         from: kshitizg786@gmail.com
         to: kshitizgupta032@gmail.com
-        subject: "Daily Playwright Test Report - $(date +'%Y-%m-%d')"
-        body: "Your scheduled Playwright test report (HTML) is attached."
-        attachments: playwright-report/index.html
+        subject: "Daily Playwright Test Report - ${{ env.DATE }}"
+        body: "Your scheduled Playwright test report is available here: https://kshitiz-code.github.io/Playwright-Automation/"
 
     - name: Send Slack Notification
       env:
