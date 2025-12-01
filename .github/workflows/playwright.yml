@@ -49,7 +49,7 @@ jobs:
         to: kshitizgupta032@gmail.com
         subject: "Daily Playwright Test Report - $(date +'%Y-%m-%d')"
         body: "Your scheduled Playwright test report (HTML) is attached."
-        attachments: playwright-report/
+        attachments: playwright-report/index.html
 
     - name: Send Slack Notification
       env:
