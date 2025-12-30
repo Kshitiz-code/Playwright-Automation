@@ -28,7 +28,6 @@ jobs:
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
-      # Run tests even if some fail
       run: npx playwright test --reporter=html
       continue-on-error: true
 
@@ -43,8 +42,8 @@ jobs:
     - name: Deploy HTML Report to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.PAT_TOKEN }}   # Personal Access Token
-        publish_dir: ./playwright-report          # Deploy contents to root
+        github_token: ${{ secrets.PAT_TOKEN }}
+        publish_dir: ./playwright-report
         keep_files: true
 
     - name: Set DATE environment variable
@@ -61,13 +60,3 @@ jobs:
         to: kshitizgupta032@gmail.com
         subject: "Daily Playwright Test Report - ${{ env.DATE }}"
         body: "Your scheduled Playwright test report is available here: https://kshitiz-code.github.io/Playwright-Automation/"
-
-    - name: Send Slack Notification
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      run: |
-        REPORT_URL="https://kshitiz-code.github.io/Playwright-Automation/"
-        curl -X POST -H 'Content-type: application/json' \
-        --data "{
-          \"text\": \"Playwright tests completed! 🎉\nHTML report is available here: <$REPORT_URL|Click to view>\"
-        }" $SLACK_WEBHOOK_URL
